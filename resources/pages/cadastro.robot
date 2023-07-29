@@ -1,8 +1,5 @@
 *** Settings ***
-Library  SeleniumLibrary
-Resource    setup_teardown.robot
-Test Setup    Abrir o site Organo
-Test Teardown    Fechar o navegador
+Resource    ../main.robot
 
 *** Variables ***
 ${CAMPO_NOME}            id:form-nome
@@ -17,14 +14,6 @@ ${OPCAO_DEVOPS}          //option[contains(.,'Devops')]
 ${OPCAO_UX}              //option[contains(.,'UX e Design')]
 ${OPCAO_MOBILE}          //option[contains(.,'Mobile')]
 ${OPCAO_INOVACAO}        //option[contains(.,'Inovação e Gestão')]
-
-*** Test Cases ***
-
-Verificar se ao preencher o formulário corretamente um novo card é criado com os dados informados
-    Quando preencho o formulário corretamente
-    E submeto o formulário
-    Então o card aparece na seção adequada
-    E as informações estão conforme informei
 
 *** Keywords ***
 Quando preencho o formulário corretamente
@@ -43,4 +32,31 @@ Então o card aparece na seção adequada
 E as informações estão conforme informei
     Element Should Be Visible    //h4[contains(.,'Taylor Swift')]
     Element Should Be Visible    //h5[contains(.,'Artista')]
-    #Element Should Be Visible    //img[@src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUBie36ySMDX2Lu3tF2ql2OLAb3mA2gHiF4g&usqp=CAU']
+
+Quando crio vários colaboradores
+    [Arguments]  ${nomes}    ${cargos}    ${times}
+
+    FOR    ${nome}    ${cargo}    ${time}    IN ZIP    ${nomes}    ${cargos}    ${times}
+        Input Text  ${CAMPO_NOME}  ${nome}
+        Input Text  ${CAMPO_CARGO}  ${cargo}
+        Input Text  ${CAMPO_IMAGEM}  https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUBie36ySMDX2Lu3tF2ql2OLAb3mA2gHiF4g&usqp=CAU
+        Click Element    ${CAMPO_TIME}
+        Click Element    ${time}
+        E submeto o formulário
+    END
+
+Então as informações de cada um estão conforme informei
+    [Arguments]  ${nomes}    ${cargos}    ${times}
+
+    FOR    ${nome}    ${cargo}    IN ZIP    ${nomes}    ${cargos}
+        Element Should Be Visible    //h4[contains(.,'${nome}')]
+        Element Should Be Visible    //h5[contains(.,'${cargo}')]
+    END
+
+Então vejo os erros de validação nos campos Nome, Cargo e Time 
+    Element Should Be Visible    //p[@id='form-nome-erro']
+    Element Should Be Visible    //p[@id='form-cargo-erro']
+    Element Should Be Visible    //p[@id='form-times-erro']
+
+Quando submeto o formulário
+    Click Button    ${BOTAO_SUBMETER}
